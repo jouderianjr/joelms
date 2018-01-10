@@ -1,6 +1,7 @@
 const { p, h1, div, render, text, button, input, beginnerProgram } = joelms;
 
 const update = (action, model) => {
+  debugger;
   switch (action.type) {
     case 'OnDecrement':
       return { ...model, counter: model.counter - 1 };
@@ -11,42 +12,30 @@ const update = (action, model) => {
   }
 };
 
-const renderHeader = () =>
-  h1(
-    {
-      class: 'arroz',
-      style: 'background-color: blue; color: white;',
-    },
-    [text('Hello World in JoelmS')]
-  );
+const renderAwesomeMsg = counter =>
+  counter === 10 && h1({}, [text('DUUUUUDEEEE, ten? 10? really?')]);
 
-const view = model =>
-  div({}, [
-    renderHeader(model),
-    p(
-      {
-        class: 'arroz',
-        style: 'background-color: red; color: white;',
-      },
-      [text('This is an unique counter app')]
-    ),
+const view = model => {
+  return div({}, [
     button(
       {
         onClick: 'OnDecrement',
       },
       [text('Decrement')]
     ),
-    text(model.counter.toString()),
     button(
       {
         onClick: 'OnIncrement',
       },
       [text('Increment')]
     ),
+    text(model.counter.toString()),
+    renderAwesomeMsg(model.counter),
   ]);
+};
 
 beginnerProgram({
-  root: document.getElementById('root'),
+  root: 'root',
   model: { counter: 0 },
   view: view,
   update: update,

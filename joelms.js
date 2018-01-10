@@ -2,26 +2,67 @@ const isEventAttribute = attr => /^on/.test(attr);
 
 const extractEventName = attr => attr.replace('on', '').toLowerCase();
 
-const renderElement = (obj, update, model, view, root) => {
-  const el = document.createElement(obj.type);
+const renderElement = (vNode, update, model, view, root, parent, index = 0) => {
+  // debugger;
 
-  Object.keys(obj.attrs).forEach(key => {
-    if (isEventAttribute(key)) {
-      el.addEventListener(extractEventName(key), e =>
-        _update({ type: obj.attrs[key], payload: e }, model, update, view, root)
-      );
+  let el;
+
+  if (parent.childNodes.length >= index + 1) {
+    el = parent.childNodes[index];
+
+    if (typeof vNode === 'string') {
+      if (el.data !== vNode) {
+        el.data = vNode;
+        debugger;
+      }
+
+      return el;
     } else {
-      el.setAttribute(key, obj.attrs[key]);
-    }
-  });
+      const validItems = vNode.children.filter(item => !!item);
 
-  obj.children.forEach(item => {
-    el.appendChild(
-      typeof item === 'string'
-        ? document.createTextNode(item)
-        : renderElement(item, update, model, view, root)
-    );
-  });
+      validItems.forEach((item, i) =>
+        renderElement(item, update, model, view, root, el, i)
+      );
+
+      return el;
+    }
+  } else {
+    if (typeof vNode === 'string') {
+      debugger;
+      el = document.createTextNode(vNode);
+
+      parent.appendChild(el);
+
+      return el;
+    }
+
+    el = document.createElement(vNode.type);
+
+    // Adicionando os atributos ao novo node
+    Object.keys(vNode.attrs).forEach(key => {
+      if (isEventAttribute(key)) {
+        el.addEventListener(extractEventName(key), e =>
+          _update(
+            { type: vNode.attrs[key], payload: e },
+            model,
+            update,
+            view,
+            root
+          )
+        );
+      } else {
+        el.setAttribute(key, vNode.attrs[key]);
+      }
+    });
+  }
+
+  const validItems = vNode.children.filter(item => !!item);
+
+  validItems.forEach((item, i) =>
+    renderElement(item, update, model, view, root, el, i)
+  );
+
+  parent.appendChild(el);
 
   return el;
 };
@@ -37,10 +78,19 @@ const _update = (payload, model, update, view, root) => {
 };
 
 const render = (root, view, update, model) => {
-  if (root.childElementCount) {
-    root.removeChild(root.firstChild);
-  }
-  root.appendChild(renderElement(view(model), update, model, view, root));
+  // if (root.childElementCount) {
+  //   root.removeChild(root.firstChild);
+  // }
+
+  renderElement(
+    view(model),
+    update,
+    model,
+    view,
+    root,
+    document.getElementById(root),
+    0
+  );
 };
 
 const beginnerProgram = ({ root, view, update, model }) => {
